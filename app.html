@@ -387,8 +387,7 @@
   async function loadVoices() {
     try {
       const res = await apiFetch('/.netlify/functions/voices');
-      if (res.status === 401) { logout(); return; }
-      if (!res.ok) throw new Error('No se pudieron cargar las voces');
+      if (!res.ok) throw new Error(`Error ${res.status} cargando voces`);
       const { voices } = await res.json();
       populateVoices(voices);
     } catch (e) {
@@ -559,7 +558,6 @@
           body: JSON.stringify({ text: chunks[i], voiceId })
         });
 
-        if (res.status === 401) { logout(); return; }
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           throw new Error(err.error || `HTTP ${res.status}`);
