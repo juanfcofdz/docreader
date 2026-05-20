@@ -3,308 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocReader — ElevenLabs</title>
-
-  <!-- PDF.js -->
+  <title>DocReader</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <!-- Mammoth (DOCX) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0f0f13;
-      --surface: #1a1a24;
-      --surface2: #24243a;
-      --accent: #7c5cfc;
-      --accent2: #a78bfa;
-      --text: #e8e8f0;
-      --muted: #7878a0;
-      --border: #2e2e45;
-      --danger: #f87171;
-      --success: #34d399;
-      --radius: 12px;
+      --bg: #0f0f13; --surface: #1a1a24; --surface2: #24243a;
+      --accent: #7c5cfc; --accent2: #a78bfa; --text: #e8e8f0;
+      --muted: #7878a0; --border: #2e2e45; --danger: #f87171;
+      --success: #34d399; --radius: 12px;
     }
-
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 32px 16px 64px;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 32px 16px 64px;
     }
-
     header {
-      width: 100%;
-      max-width: 680px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 32px;
+      width: 100%; max-width: 680px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;
     }
     .header-title {
-      font-size: 1.6rem;
-      font-weight: 700;
+      font-size: 1.6rem; font-weight: 700;
       background: linear-gradient(135deg, var(--accent2), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.5px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; letter-spacing: -0.5px;
     }
     .btn-logout {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 8px;
-      padding: 7px 14px;
-      font-size: 0.82rem;
-      cursor: pointer;
+      background: transparent; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 8px; padding: 7px 14px; font-size: 0.82rem; cursor: pointer;
       transition: border-color 0.2s, color 0.2s;
     }
     .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
-
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      width: 100%;
-      max-width: 680px;
-      margin-bottom: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; width: 100%; max-width: 680px; margin-bottom: 16px;
     }
-    .card-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-
+    .card-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; }
     select {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 14px;
-      font-size: 0.9rem;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.2s;
-      appearance: none;
-      -webkit-appearance: none;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); padding: 10px 14px; font-size: 0.9rem; width: 100%;
+      outline: none; transition: border-color 0.2s; appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237878a0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      cursor: pointer;
+      background-repeat: no-repeat; background-position: right 14px center; cursor: pointer;
     }
     select:focus { border-color: var(--accent); }
     select option { background: #1a1a24; }
-
-    button {
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      padding: 10px 18px;
-      transition: opacity 0.15s, transform 0.1s;
-    }
+    button { cursor: pointer; border: none; border-radius: 8px; font-size: 0.9rem;
+      font-weight: 600; padding: 10px 18px; transition: opacity 0.15s, transform 0.1s; }
     button:active { transform: scale(0.97); }
     button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .btn-ghost {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-ghost:hover:not(:disabled) { border-color: var(--accent); }
-    .btn-danger-outline {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid var(--danger);
-    }
-
-    /* Upload zone */
+    .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
     .upload-zone {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 40px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 40px 24px; text-align: center; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s; position: relative;
     }
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--accent);
-      background: rgba(124, 92, 252, 0.06);
-    }
-    .upload-zone input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: rgba(124,92,252,0.06); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
     .upload-zone p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
     .upload-zone strong { color: var(--text); }
-
     .file-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-top: 12px;
+      display: flex; align-items: center; gap: 12px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin-top: 12px;
     }
     .file-info .file-icon { font-size: 1.5rem; }
     .file-info .file-name { font-size: 0.9rem; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .file-info .file-size { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; }
-
     .text-preview {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
-      font-size: 0.85rem;
-      line-height: 1.7;
-      max-height: 160px;
-      overflow-y: auto;
-      color: var(--muted);
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin-top: 12px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; font-size: 0.85rem; line-height: 1.7; max-height: 160px;
+      overflow-y: auto; color: var(--muted); white-space: pre-wrap; word-break: break-word; margin-top: 12px;
     }
     .text-preview::-webkit-scrollbar { width: 6px; }
-    .text-preview::-webkit-scrollbar-track { background: transparent; }
     .text-preview::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    .char-count {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 8px;
-      text-align: right;
-    }
-
-    /* Player */
-    .player-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .char-count { font-size: 0.78rem; color: var(--muted); margin-top: 8px; text-align: right; }
+    .player-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .btn-play {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      padding: 0;
+      width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: #fff;
+      font-size: 1.3rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; padding: 0;
     }
     .btn-play:hover:not(:disabled) { opacity: 0.85; }
-
     .progress-wrap { flex: 1; min-width: 160px; }
-    .progress-bar-bg {
-      height: 6px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 3px;
-      transition: width 0.3s;
-      width: 0%;
-    }
+    .progress-bar-bg { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.3s; width: 0%; }
     .progress-label { font-size: 0.78rem; color: var(--muted); }
-
-    .speed-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 16px;
-    }
+    .speed-row { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
     .speed-label { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
-    .speed-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
+    .speed-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; font-weight: 600; }
     .speed-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
     .speed-btn:hover:not(.active):not(:disabled) { border-color: var(--accent); }
-
-    .status-bar {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 14px;
-      min-height: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .status-bar { font-size: 0.82rem; color: var(--muted); margin-top: 14px; min-height: 20px;
+      display: flex; align-items: center; gap: 8px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .dot.idle    { background: var(--border); }
     .dot.loading { background: #fbbf24; animation: pulse 1s infinite; }
     .dot.playing { background: var(--success); animation: pulse 1s infinite; }
     .dot.error   { background: var(--danger); }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .hidden { display: none !important; }
-    .mt-12  { margin-top: 12px; }
-
-    /* Loading overlay */
-    .loading-voices {
-      font-size: 0.85rem;
-      color: var(--muted);
-      padding: 10px 0;
-    }
+    .mt-12 { margin-top: 12px; }
   </style>
 </head>
 <body>
 
 <header>
   <div class="header-title">🎧 DocReader</div>
+  <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
 </header>
 
-<!-- 1. Voz -->
 <div class="card">
   <div class="card-title">🎙 Voz</div>
-  <div class="loading-voices" id="loadingVoices">Cargando voces…</div>
+  <div id="loadingVoices" style="font-size:0.85rem;color:var(--muted);">Cargando voces…</div>
   <select id="voiceSelect" class="hidden"></select>
 </div>
 
-<!-- 2. Documento -->
 <div class="card">
   <div class="card-title">📄 Documento</div>
-
   <div class="upload-zone" id="uploadZone">
     <input type="file" id="fileInput" accept=".pdf,.doc,.docx" onchange="handleFile(this.files[0])" />
     <div class="upload-icon">📂</div>
     <p><strong>Arrastra aquí</strong> tu PDF o Word<br />o haz click para seleccionar</p>
   </div>
-
   <div id="fileInfo" class="hidden">
     <div class="file-info">
       <span class="file-icon" id="fileIcon">📄</span>
@@ -317,21 +144,16 @@
   </div>
 </div>
 
-<!-- 3. Reproductor -->
 <div class="card">
   <div class="card-title">▶ Reproducción</div>
-
   <div class="player-controls">
     <button class="btn-play" id="btnPlay" onclick="togglePlay()" disabled>▶</button>
     <div class="progress-wrap">
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
       <div class="progress-label" id="progressLabel">0 / 0 fragmentos</div>
     </div>
     <button class="btn-ghost" id="btnStop" onclick="stopAll()" disabled style="padding:10px 14px;">⏹</button>
   </div>
-
   <div class="speed-row">
     <span class="speed-label">Velocidad:</span>
     <button class="speed-btn" onclick="setSpeed(0.75)">0.75×</button>
@@ -339,7 +161,6 @@
     <button class="speed-btn" onclick="setSpeed(1.25)">1.25×</button>
     <button class="speed-btn" onclick="setSpeed(1.5)">1.5×</button>
   </div>
-
   <div class="status-bar">
     <span class="dot idle" id="statusDot"></span>
     <span id="statusText">Listo</span>
@@ -347,103 +168,76 @@
 </div>
 
 <script>
-  // ── Auth guard ───────────────────────────────────────────────────────────
-  const SESSION_PASS = sessionStorage.getItem('dr_pass');
-  if (!SESSION_PASS) { window.location.href = '/'; }
-
-  function authUrl(path) {
-    return `${path}?p=${encodeURIComponent(SESSION_PASS)}`;
-  }
-
-  // ── Config ───────────────────────────────────────────────────────────────
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   const CHUNK_SIZE = 2400;
+  const XI_BASE   = 'https://api.elevenlabs.io/v1';
 
-  // ── State ────────────────────────────────────────────────────────────────
-  let fullText     = '';
-  let chunks       = [];
-  let currentIdx   = 0;
-  let isPlaying    = false;
-  let isStopped    = false;
-  let currentAudio = null;
-  let playbackRate = 1.0;
+  // ── Auth guard ────────────────────────────────────────────────────────────
+  const API_KEY = sessionStorage.getItem('xi_key');
+  if (!API_KEY) window.location.href = '/';
 
-  // ── Cargar voces al iniciar ──────────────────────────────────────────────
+  function logout() {
+    sessionStorage.removeItem('xi_key');
+    window.location.href = '/';
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let fullText = '', chunks = [], currentIdx = 0;
+  let isPlaying = false, isStopped = false;
+  let currentAudio = null, playbackRate = 1.0;
+
+  // ── Voces ─────────────────────────────────────────────────────────────────
   async function loadVoices() {
     try {
-      const res = await fetch(authUrl('/.netlify/functions/voices'));
-      if (!res.ok) throw new Error(`Error ${res.status} cargando voces`);
+      const res = await fetch(`${XI_BASE}/voices`, { headers: { 'xi-api-key': API_KEY } });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
       const { voices } = await res.json();
-      populateVoices(voices);
+      const sel = document.getElementById('voiceSelect');
+      document.getElementById('loadingVoices').classList.add('hidden');
+      sel.classList.remove('hidden');
+      const sorted = [...voices].sort((a, b) => {
+        const aEs = (a.labels?.language||'').toLowerCase().includes('es');
+        const bEs = (b.labels?.language||'').toLowerCase().includes('es');
+        if (aEs && !bEs) return -1; if (!aEs && bEs) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      sorted.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.voice_id;
+        opt.textContent = `${v.name}${v.labels?.language ? ' ['+v.labels.language+']' : ''}`;
+        sel.appendChild(opt);
+      });
     } catch (e) {
       document.getElementById('loadingVoices').textContent = '⚠ ' + e.message;
     }
   }
 
-  function populateVoices(list) {
-    document.getElementById('loadingVoices').classList.add('hidden');
-    const sel = document.getElementById('voiceSelect');
-    sel.classList.remove('hidden');
-    const sorted = [...list].sort((a, b) => {
-      const aEs = (a.labels?.language || '').toLowerCase().includes('es') ||
-                  (a.name || '').toLowerCase().includes('espa');
-      const bEs = (b.labels?.language || '').toLowerCase().includes('es') ||
-                  (b.name || '').toLowerCase().includes('espa');
-      if (aEs && !bEs) return -1;
-      if (!aEs && bEs) return 1;
-      return a.name.localeCompare(b.name);
-    });
-    sorted.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.voice_id;
-      const lang = v.labels?.language ? ` [${v.labels.language}]` : '';
-      opt.textContent = `${v.name}${lang}`;
-      sel.appendChild(opt);
-    });
-  }
-
-  // ── Manejo de archivo ─────────────────────────────────────────────────────
+  // ── Archivo ───────────────────────────────────────────────────────────────
   const uploadZone = document.getElementById('uploadZone');
   uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
   uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadZone.classList.remove('drag-over');
-    const f = e.dataTransfer.files[0];
-    if (f) handleFile(f);
-  });
+  uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
 
   async function handleFile(file) {
     if (!file) return;
     setStatus('Extrayendo texto…', 'loading');
     try {
       const ext = file.name.split('.').pop().toLowerCase();
-      let text = '';
-      if (ext === 'pdf') {
-        text = await extractPDF(file);
-      } else if (ext === 'docx' || ext === 'doc') {
-        text = await extractDOCX(file);
-      } else {
-        setStatus('Formato no soportado. Usa PDF o DOCX.', 'error');
-        return;
-      }
+      let text = ext === 'pdf' ? await extractPDF(file) : await extractDOCX(file);
       text = cleanText(text);
       fullText = text;
       chunks = splitChunks(text, CHUNK_SIZE);
       showFileInfo(file, text);
       document.getElementById('btnPlay').disabled = false;
       updateProgress(0);
-      setStatus(`Listo — ${chunks.length} fragmento(s) para leer`, 'idle');
-    } catch (e) {
-      setStatus('Error leyendo el archivo: ' + e.message, 'error');
-    }
+      setStatus(`Listo — ${chunks.length} fragmento(s)`, 'idle');
+    } catch (e) { setStatus('Error: ' + e.message, 'error'); }
   }
 
   async function extractPDF(file) {
-    const ab = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
     let text = '';
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
@@ -454,30 +248,20 @@
   }
 
   async function extractDOCX(file) {
-    const ab = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer: ab });
+    const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
     return result.value;
   }
 
   function cleanText(t) {
-    return t
-      .replace(/\r\n/g, '\n')
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+    return t.replace(/\r\n/g,'\n').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
   }
 
   function splitChunks(text, size) {
     const sentences = text.match(/[^.!?\n]+[.!?\n]*/g) || [text];
-    const result = [];
-    let current = '';
+    const result = []; let current = '';
     for (const s of sentences) {
-      if ((current + s).length > size && current.length > 0) {
-        result.push(current.trim());
-        current = s;
-      } else {
-        current += s;
-      }
+      if ((current + s).length > size && current.length > 0) { result.push(current.trim()); current = s; }
+      else { current += s; }
     }
     if (current.trim()) result.push(current.trim());
     return result;
@@ -491,96 +275,72 @@
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileSize').textContent = formatSize(file.size);
     document.getElementById('textPreview').textContent = text.slice(0, 600) + (text.length > 600 ? '…' : '');
-    document.getElementById('charCount').textContent =
-      `${text.length.toLocaleString()} caracteres · ${chunks.length} fragmentos`;
+    document.getElementById('charCount').textContent = `${text.length.toLocaleString()} caracteres · ${chunks.length} fragmentos`;
   }
 
   function clearFile() {
-    fullText = ''; chunks = []; currentIdx = 0;
-    stopAll();
+    fullText = ''; chunks = []; currentIdx = 0; stopAll();
     document.getElementById('uploadZone').classList.remove('hidden');
     document.getElementById('fileInfo').classList.add('hidden');
     document.getElementById('fileInput').value = '';
     document.getElementById('btnPlay').disabled = true;
-    updateProgress(0);
-    setStatus('Listo', 'idle');
+    updateProgress(0); setStatus('Listo', 'idle');
   }
 
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
+  function formatSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
   }
 
   // ── Playback ──────────────────────────────────────────────────────────────
   async function togglePlay() {
-    if (isPlaying) {
-      pauseAudio();
-    } else {
-      if (currentIdx >= chunks.length) currentIdx = 0;
-      isStopped = false;
-      await playFrom(currentIdx);
-    }
+    if (isPlaying) { pauseAudio(); return; }
+    if (currentIdx >= chunks.length) currentIdx = 0;
+    isStopped = false;
+    await playFrom(currentIdx);
   }
 
   async function playFrom(startIdx) {
-    isPlaying = true;
-    isStopped = false;
+    isPlaying = true; isStopped = false;
     setPlayBtn('⏸');
     document.getElementById('btnStop').disabled = false;
-
     const voiceId = document.getElementById('voiceSelect').value;
     if (!voiceId) { setStatus('Selecciona una voz', 'error'); stopAll(); return; }
 
     for (let i = startIdx; i < chunks.length; i++) {
       if (isStopped) break;
-      currentIdx = i;
-      updateProgress(i);
-      setStatus(`Generando fragmento ${i + 1} / ${chunks.length}…`, 'loading');
-
+      currentIdx = i; updateProgress(i);
+      setStatus(`Generando fragmento ${i+1} / ${chunks.length}…`, 'loading');
       try {
-        const res = await fetch(authUrl('/.netlify/functions/tts'), {
+        const res = await fetch(`${XI_BASE}/text-to-speech/${voiceId}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: chunks[i], voiceId })
+          headers: { 'xi-api-key': API_KEY, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+          body: JSON.stringify({ text: chunks[i], model_id: 'eleven_multilingual_v2', voice_settings: { stability: 0.5, similarity_boost: 0.75 } })
         });
-
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || `HTTP ${res.status}`);
+          throw new Error(err?.detail?.message || `Error ${res.status}`);
         }
-
         if (isStopped) break;
-        const { audio } = await res.json();
-        const blob = base64ToBlob(audio, 'audio/mpeg');
-        setStatus(`Reproduciendo fragmento ${i + 1} / ${chunks.length}`, 'playing');
+        const blob = await res.blob();
+        setStatus(`Reproduciendo ${i+1} / ${chunks.length}`, 'playing');
         await playBlob(blob);
         if (isStopped) break;
       } catch (e) {
-        document.getElementById('btnPlay').disabled = false;
+        isPlaying = false; setPlayBtn('▶');
         document.getElementById('btnStop').disabled = true;
-        isPlaying = false;
-        setPlayBtn('▶');
-        setStatus('⚠ Error: ' + e.message, 'error');
+        setStatus('⚠ ' + e.message, 'error');
         return;
       }
     }
 
     if (!isStopped) {
-      currentIdx = 0;
-      updateProgress(chunks.length);
+      currentIdx = 0; updateProgress(chunks.length);
       setStatus('✓ Lectura completada', 'idle');
-      setPlayBtn('▶');
-      isPlaying = false;
+      setPlayBtn('▶'); isPlaying = false;
       document.getElementById('btnStop').disabled = true;
     }
-  }
-
-  function base64ToBlob(base64, mime) {
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return new Blob([bytes], { type: mime });
   }
 
   function playBlob(blob) {
@@ -590,31 +350,26 @@
       audio.playbackRate = playbackRate;
       currentAudio = audio;
       audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-      audio.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Error de audio')); };
+      audio.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Error reproduciendo audio')); };
       audio.play().catch(reject);
     });
   }
 
   function pauseAudio() {
-    if (currentAudio) { currentAudio.pause(); }
-    isStopped = true;
-    isPlaying = false;
-    setPlayBtn('▶');
-    setStatus('Pausado', 'idle');
+    if (currentAudio) currentAudio.pause();
+    isStopped = true; isPlaying = false;
+    setPlayBtn('▶'); setStatus('Pausado', 'idle');
   }
 
   function stopAll() {
-    isStopped = true;
-    isPlaying = false;
+    isStopped = true; isPlaying = false;
     if (currentAudio) { currentAudio.pause(); currentAudio = null; }
     setPlayBtn('▶');
     document.getElementById('btnStop').disabled = true;
-    currentIdx = 0;
-    updateProgress(0);
+    currentIdx = 0; updateProgress(0);
     if (fullText) setStatus('Listo', 'idle');
   }
 
-  // ── Velocidad ─────────────────────────────────────────────────────────────
   function setSpeed(rate) {
     playbackRate = rate;
     if (currentAudio) currentAudio.playbackRate = rate;
@@ -623,7 +378,6 @@
     });
   }
 
-  // ── UI helpers ────────────────────────────────────────────────────────────
   function setStatus(msg, type) {
     document.getElementById('statusText').textContent = msg;
     document.getElementById('statusDot').className = 'dot ' + (type || 'idle');
@@ -631,13 +385,11 @@
   function setPlayBtn(icon) { document.getElementById('btnPlay').textContent = icon; }
   function updateProgress(idx) {
     const total = chunks.length || 0;
-    const pct   = total > 0 ? Math.round((idx / total) * 100) : 0;
+    const pct = total > 0 ? Math.round((idx/total)*100) : 0;
     document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressLabel').textContent =
-      total > 0 ? `${idx} / ${total} fragmentos` : '0 / 0 fragmentos';
+    document.getElementById('progressLabel').textContent = total > 0 ? `${idx} / ${total} fragmentos` : '0 / 0 fragmentos';
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
   loadVoices();
 </script>
 </body>

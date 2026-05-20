@@ -17,30 +17,33 @@
       min-height: 100vh; display: flex; flex-direction: column;
       align-items: center; justify-content: center; padding: 24px;
     }
-    .lock-icon { font-size: 3rem; margin-bottom: 16px; filter: drop-shadow(0 0 24px rgba(124,92,252,0.4)); }
+    .icon { font-size: 3rem; margin-bottom: 16px; filter: drop-shadow(0 0 24px rgba(124,92,252,0.4)); }
     h1 {
       font-size: 2rem; font-weight: 700;
       background: linear-gradient(135deg, var(--accent2), var(--accent));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; letter-spacing: -0.5px; margin-bottom: 8px; text-align: center;
     }
-    p.subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 36px; text-align: center; }
+    p.subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; text-align: center; line-height: 1.5; }
     .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 32px; width: 100%; max-width: 380px;
+      border-radius: var(--radius); padding: 32px; width: 100%; max-width: 400px;
     }
     label { display: block; font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
       letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
-    input[type="password"] {
+    input {
       width: 100%; background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); padding: 12px 16px; font-size: 1rem;
-      outline: none; transition: border-color 0.2s; letter-spacing: 2px;
+      border-radius: 8px; color: var(--text); padding: 12px 16px; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s; font-family: monospace;
     }
-    input[type="password"]:focus { border-color: var(--accent); }
-    input[type="password"]::placeholder { letter-spacing: 0; color: var(--muted); }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); font-family: sans-serif; }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+    .hint a { color: var(--accent2); text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
     button {
-      width: 100%; margin-top: 16px; background: var(--accent); color: #fff;
-      border: none; border-radius: 8px; padding: 12px; font-size: 1rem;
+      width: 100%; margin-top: 20px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; padding: 13px; font-size: 1rem;
       font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s;
     }
     button:hover { opacity: 0.88; }
@@ -49,49 +52,61 @@
     .error-msg { margin-top: 14px; font-size: 0.85rem; color: var(--danger); text-align: center; min-height: 20px; }
     .shake { animation: shake 0.35s ease; }
     @keyframes shake {
-      0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); }
-      40% { transform: translateX(8px); }  60% { transform: translateX(-6px); }
-      80% { transform: translateX(6px); }
+      0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)}
+      40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
     }
   </style>
 </head>
 <body>
-  <div class="lock-icon">🎧</div>
+  <div class="icon">🎧</div>
   <h1>DocReader</h1>
-  <p class="subtitle">Ingresa la contraseña para continuar</p>
+  <p class="subtitle">Ingresa tu API key de ElevenLabs<br>para comenzar</p>
+
   <div class="card">
-    <label for="password">Contraseña</label>
-    <input type="password" id="password" placeholder="••••••••" autofocus />
+    <label for="apiKey">API Key de ElevenLabs</label>
+    <input type="password" id="apiKey" placeholder="sk_..." autocomplete="off" autofocus />
+    <p class="hint">
+      Encuéntrala en <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">elevenlabs.io → Settings → API Keys</a>.
+      Solo se guarda en tu sesión del navegador.
+    </p>
     <button id="btnEnter" onclick="login()">Entrar</button>
     <div class="error-msg" id="errorMsg"></div>
   </div>
+
   <script>
-    const input = document.getElementById('password');
+    const input = document.getElementById('apiKey');
     const btn   = document.getElementById('btnEnter');
     const err   = document.getElementById('errorMsg');
 
     input.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 
+    // Si ya hay sesión activa, ir directo a la app
+    if (sessionStorage.getItem('xi_key')) window.location.href = '/app.html';
+
     async function login() {
-      const password = input.value;
-      if (!password) return;
+      const key = input.value.trim();
+      if (!key) return;
       btn.disabled = true;
       btn.textContent = 'Verificando…';
       err.textContent = '';
+
       try {
-        const res = await fetch('/.netlify/functions/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password })
+        // Verificar la key llamando a ElevenLabs directamente
+        const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+          headers: { 'xi-api-key': key }
         });
         if (res.ok) {
-          sessionStorage.setItem('dr_pass', password);
+          sessionStorage.setItem('xi_key', key);
           window.location.href = '/app.html';
+        } else if (res.status === 401) {
+          showError('API key inválida — verifica que sea correcta');
+        } else if (res.status === 403) {
+          showError('La key no tiene permiso de Voces (voices_read)');
         } else {
-          showError('Contraseña incorrecta');
+          showError(`Error ${res.status} — intenta de nuevo`);
         }
       } catch (e) {
-        showError('Error de conexión');
+        showError('Error de conexión — intenta de nuevo');
       } finally {
         btn.disabled = false;
         btn.textContent = 'Entrar';
@@ -104,10 +119,7 @@
       card.classList.remove('shake');
       void card.offsetWidth;
       card.classList.add('shake');
-      input.select();
     }
-
-    if (sessionStorage.getItem('dr_pass')) window.location.href = '/app.html';
   </script>
 </body>
 </html>
