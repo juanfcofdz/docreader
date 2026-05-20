@@ -1,16 +1,5 @@
 exports.handler = async (event) => {
-  const APP_PASSWORD   = process.env.APP_PASSWORD;
   const ELEVENLABS_KEY = process.env.ELEVENLABS_API_KEY;
-
-  // Aceptar contraseña desde query param o header
-  const providedPassword =
-    event.queryStringParameters?.p ||
-    event.headers['x-app-password'] ||
-    event.headers['X-App-Password'];
-
-  if (!APP_PASSWORD || providedPassword !== APP_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-  }
 
   if (!ELEVENLABS_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'ELEVENLABS_API_KEY not configured' }) };

@@ -3,18 +3,7 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const APP_PASSWORD   = process.env.APP_PASSWORD;
   const ELEVENLABS_KEY = process.env.ELEVENLABS_API_KEY;
-
-  // Aceptar contraseña desde query param o header
-  const providedPassword =
-    event.queryStringParameters?.p ||
-    event.headers['x-app-password'] ||
-    event.headers['X-App-Password'];
-
-  if (!APP_PASSWORD || providedPassword !== APP_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
-  }
 
   if (!ELEVENLABS_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'ELEVENLABS_API_KEY not configured' }) };
@@ -52,16 +41,12 @@ exports.handler = async (event) => {
       return { statusCode: res.status, body: JSON.stringify({ error: err }) };
     }
 
-    // Devolver el audio como base64
     const arrayBuffer = await res.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'audio/mpeg',
-        'Content-Transfer-Encoding': 'base64'
-      },
+      headers: { 'Content-Type': 'audio/mpeg' },
       body: base64,
       isBase64Encoded: true
     };

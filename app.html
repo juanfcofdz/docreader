@@ -286,7 +286,6 @@
 
 <header>
   <div class="header-title">🎧 DocReader</div>
-  <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
 </header>
 
 <!-- 1. Voz -->
@@ -348,15 +347,6 @@
 </div>
 
 <script>
-  // ── Auth guard ───────────────────────────────────────────────────────────
-  const SESSION_PASS = sessionStorage.getItem('dr_pass');
-  if (!SESSION_PASS) window.location.href = '/';
-
-  function logout() {
-    sessionStorage.removeItem('dr_pass');
-    window.location.href = '/';
-  }
-
   // ── Config ───────────────────────────────────────────────────────────────
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -372,22 +362,10 @@
   let currentAudio = null;
   let playbackRate = 1.0;
 
-  // ── Helper: llamadas autenticadas a nuestras funciones ───────────────────
-  function apiFetch(path, options = {}) {
-    const separator = path.includes('?') ? '&' : '?';
-    return fetch(`${path}${separator}p=${encodeURIComponent(SESSION_PASS)}`, {
-      ...options,
-      headers: {
-        'x-app-password': SESSION_PASS,
-        ...(options.headers || {})
-      }
-    });
-  }
-
   // ── Cargar voces al iniciar ──────────────────────────────────────────────
   async function loadVoices() {
     try {
-      const res = await apiFetch('/.netlify/functions/voices');
+      const res = await fetch('/.netlify/functions/voices');
       if (!res.ok) throw new Error(`Error ${res.status} cargando voces`);
       const { voices } = await res.json();
       populateVoices(voices);
@@ -553,7 +531,7 @@
       setStatus(`Generando fragmento ${i + 1} / ${chunks.length}…`, 'loading');
 
       try {
-        const res = await apiFetch('/.netlify/functions/tts', {
+        const res = await fetch('/.netlify/functions/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: chunks[i], voiceId })
