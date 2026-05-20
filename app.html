@@ -188,17 +188,16 @@
   let isPlaying = false, isStopped = false;
   let currentAudio = null, playbackRate = 1.0;
   let audioCtx = null;
+  let currentAudioSource = null;
 
-  // Desbloquear audio en el primer gesto del usuario
-  function unlockAudio() {
-    if (audioCtx) return;
+  async function unlockAudio() {
+    if (audioCtx) { await audioCtx.resume(); return; }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Reproducir buffer silencioso para desbloquear
     const buf = audioCtx.createBuffer(1, 1, 22050);
     const src = audioCtx.createBufferSource();
-    src.buffer = buf;
-    src.connect(audioCtx.destination);
-    src.start(0);
-    audioCtx.resume();
+    src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+    await audioCtx.resume();
   }
 
   // ── Voces ─────────────────────────────────────────────────────────────────
@@ -365,26 +364,30 @@
   }
 
   function playBlob(blob) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.playbackRate = playbackRate;
-      currentAudio = audio;
-      audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
-      audio.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Error reproduciendo audio')); };
-      audio.play().catch(reject);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioBuffer  = await audioCtx.decodeAudioData(arrayBuffer);
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = playbackRate;
+        source.connect(audioCtx.destination);
+        currentAudioSource = source;
+        source.onended = resolve;
+        source.start(0);
+      } catch (e) { reject(e); }
     });
   }
 
   function pauseAudio() {
-    if (currentAudio) currentAudio.pause();
+    if (currentAudioSource) { try { currentAudioSource.stop(); } catch(e){} currentAudioSource = null; }
     isStopped = true; isPlaying = false;
     setPlayBtn('▶'); setStatus('Pausado', 'idle');
   }
 
   function stopAll() {
     isStopped = true; isPlaying = false;
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    if (currentAudioSource) { try { currentAudioSource.stop(); } catch(e){} currentAudioSource = null; }
     setPlayBtn('▶');
     document.getElementById('btnStop').disabled = true;
     currentIdx = 0; updateProgress(0);
@@ -393,7 +396,7 @@
 
   function setSpeed(rate) {
     playbackRate = rate;
-    if (currentAudio) currentAudio.playbackRate = rate;
+    if (currentAudioSource) currentAudioSource.playbackRate.value = rate;
     document.querySelectorAll('.speed-btn').forEach(b => {
       b.classList.toggle('active', parseFloat(b.textContent) === rate);
     });
