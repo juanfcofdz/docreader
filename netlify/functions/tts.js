@@ -51,9 +51,8 @@ exports.handler = async (event) => {
     const base64 = Buffer.from(arrayBuffer).toString('base64');
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'audio/mpeg' },
-      body: base64,
-      isBase64Encoded: true
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audio: base64 })
     };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
