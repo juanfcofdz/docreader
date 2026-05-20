@@ -3,7 +3,13 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  const APP_PASSWORD   = process.env.APP_PASSWORD;
   const ELEVENLABS_KEY = process.env.ELEVENLABS_API_KEY;
+
+  const provided = event.queryStringParameters?.p;
+  if (!APP_PASSWORD || provided !== APP_PASSWORD) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+  }
 
   if (!ELEVENLABS_KEY) {
     return { statusCode: 500, body: JSON.stringify({ error: 'ELEVENLABS_API_KEY not configured' }) };
@@ -25,7 +31,7 @@ exports.handler = async (event) => {
     const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'xi-api-key': ELEVENLABS_KEY,
+        'xi-api-key': ELEVENLABS_KEY.trim(),
         'Content-Type': 'application/json',
         'Accept': 'audio/mpeg'
       },
@@ -43,7 +49,6 @@ exports.handler = async (event) => {
 
     const arrayBuffer = await res.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
-
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'audio/mpeg' },

@@ -347,6 +347,14 @@
 </div>
 
 <script>
+  // ── Auth guard ───────────────────────────────────────────────────────────
+  const SESSION_PASS = sessionStorage.getItem('dr_pass');
+  if (!SESSION_PASS) { window.location.href = '/'; }
+
+  function authUrl(path) {
+    return `${path}?p=${encodeURIComponent(SESSION_PASS)}`;
+  }
+
   // ── Config ───────────────────────────────────────────────────────────────
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -365,7 +373,7 @@
   // ── Cargar voces al iniciar ──────────────────────────────────────────────
   async function loadVoices() {
     try {
-      const res = await fetch('/.netlify/functions/voices');
+      const res = await fetch(authUrl('/.netlify/functions/voices'));
       if (!res.ok) throw new Error(`Error ${res.status} cargando voces`);
       const { voices } = await res.json();
       populateVoices(voices);
@@ -531,7 +539,7 @@
       setStatus(`Generando fragmento ${i + 1} / ${chunks.length}…`, 'loading');
 
       try {
-        const res = await fetch('/.netlify/functions/tts', {
+        const res = await fetch(authUrl('/.netlify/functions/tts'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: chunks[i], voiceId })
