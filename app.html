@@ -187,6 +187,19 @@
   let fullText = '', chunks = [], currentIdx = 0;
   let isPlaying = false, isStopped = false;
   let currentAudio = null, playbackRate = 1.0;
+  let audioCtx = null;
+
+  // Desbloquear audio en el primer gesto del usuario
+  function unlockAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    audioCtx.resume();
+  }
 
   // ── Voces ─────────────────────────────────────────────────────────────────
   async function loadVoices() {
@@ -303,6 +316,7 @@
   // ── Playback ──────────────────────────────────────────────────────────────
   async function togglePlay() {
     if (isPlaying) { pauseAudio(); return; }
+    unlockAudio(); // desbloquear audio en el gesto del usuario
     if (currentIdx >= chunks.length) currentIdx = 0;
     isStopped = false;
     await playFrom(currentIdx);
