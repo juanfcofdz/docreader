@@ -1,6 +1,6 @@
 exports.handler = async (event) => {
   const APP_PASSWORD   = process.env.APP_PASSWORD;
-  const ELEVENLABS_KEY = process.env.ELEVENLABS_API_KEY;
+  const ELEVENLABS_KEY = process.env.VARIABLE;
 
   const provided = event.queryStringParameters?.p;
   if (!APP_PASSWORD || provided !== APP_PASSWORD) {
