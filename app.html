@@ -197,18 +197,25 @@
       const sel = document.getElementById('voiceSelect');
       document.getElementById('loadingVoices').classList.add('hidden');
       sel.classList.remove('hidden');
-      const sorted = [...voices].sort((a, b) => {
-        const aEs = (a.labels?.language||'').toLowerCase().includes('es');
-        const bEs = (b.labels?.language||'').toLowerCase().includes('es');
-        if (aEs && !bEs) return -1; if (!aEs && bEs) return 1;
-        return a.name.localeCompare(b.name);
-      });
-      sorted.forEach(v => {
-        const opt = document.createElement('option');
-        opt.value = v.voice_id;
-        opt.textContent = `${v.name}${v.labels?.language ? ' ['+v.labels.language+']' : ''}`;
-        sel.appendChild(opt);
-      });
+      // Separar premade (gratis) de library (pago)
+      const premade = voices.filter(v => v.category === 'premade');
+      const others  = voices.filter(v => v.category !== 'premade');
+
+      const addGroup = (list, label) => {
+        if (!list.length) return;
+        const og = document.createElement('optgroup');
+        og.label = label;
+        list.sort((a,b) => a.name.localeCompare(b.name)).forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.voice_id;
+          opt.textContent = `${v.name}${v.labels?.language ? ' ['+v.labels.language+']' : ''}`;
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      };
+
+      addGroup(premade, '✓ Gratuitas');
+      addGroup(others,  '★ Tu biblioteca');
     } catch (e) {
       document.getElementById('loadingVoices').textContent = '⚠ ' + e.message;
     }
