@@ -557,8 +557,11 @@
         await playBlob(blob);
         if (isStopped) break;
       } catch (e) {
-        setStatus('Error: ' + e.message, 'error');
-        stopAll();
+        document.getElementById('btnPlay').disabled = false;
+        document.getElementById('btnStop').disabled = true;
+        isPlaying = false;
+        setPlayBtn('▶');
+        setStatus('⚠ Error: ' + e.message, 'error');
         return;
       }
     }
