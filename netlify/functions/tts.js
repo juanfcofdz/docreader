@@ -3,10 +3,14 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  // Verificar contraseña
-  const APP_PASSWORD     = process.env.APP_PASSWORD;
-  const ELEVENLABS_KEY   = process.env.ELEVENLABS_API_KEY;
-  const providedPassword = event.headers['x-app-password'];
+  const APP_PASSWORD   = process.env.APP_PASSWORD;
+  const ELEVENLABS_KEY = process.env.ELEVENLABS_API_KEY;
+
+  // Aceptar contraseña desde query param o header
+  const providedPassword =
+    event.queryStringParameters?.p ||
+    event.headers['x-app-password'] ||
+    event.headers['X-App-Password'];
 
   if (!APP_PASSWORD || providedPassword !== APP_PASSWORD) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };

@@ -374,7 +374,8 @@
 
   // ── Helper: llamadas autenticadas a nuestras funciones ───────────────────
   function apiFetch(path, options = {}) {
-    return fetch(path, {
+    const separator = path.includes('?') ? '&' : '?';
+    return fetch(`${path}${separator}p=${encodeURIComponent(SESSION_PASS)}`, {
       ...options,
       headers: {
         'x-app-password': SESSION_PASS,
